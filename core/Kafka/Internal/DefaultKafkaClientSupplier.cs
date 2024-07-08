@@ -6,7 +6,7 @@ using Streamiz.Kafka.Net.Metrics.Librdkafka;
 
 namespace Streamiz.Kafka.Net.Kafka.Internal
 {
-    internal class DefaultKafkaClientBuilder
+    public class DefaultKafkaClientBuilder
     {
         public virtual ConsumerBuilder<byte[], byte[]> GetConsumerBuilder(ConsumerConfig config)
             => new(config);
@@ -18,7 +18,7 @@ namespace Streamiz.Kafka.Net.Kafka.Internal
             => new(config);
     }
     
-    internal class DefaultKafkaClientSupplier : IKafkaSupplier
+    public class DefaultKafkaClientSupplier : IKafkaSupplier
     {
         private readonly KafkaLoggerAdapter loggerAdapter;
         private readonly IStreamConfig streamConfig;

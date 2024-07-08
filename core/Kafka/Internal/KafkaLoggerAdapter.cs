@@ -7,7 +7,7 @@ using Streamiz.Kafka.Net.Errors;
 
 namespace Streamiz.Kafka.Net.Kafka.Internal
 {
-    internal class KafkaLoggerAdapter
+    public class KafkaLoggerAdapter
     {
         private readonly ILogger log;
 

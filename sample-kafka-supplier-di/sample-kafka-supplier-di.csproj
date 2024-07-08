@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>sample_kafka_supplier_di</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.4.0" />
+    <PackageReference Include="Confluent.SchemaRegistry" Version="2.4.0" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\core\Streamiz.Kafka.Net.csproj" />
+    <ProjectReference Include="..\serdes\Streamiz.Kafka.Net.SchemaRegistry.SerDes.Avro\Streamiz.Kafka.Net.SchemaRegistry.SerDes.Avro.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="appsettings.json" />
+  </ItemGroup>
+
+</Project>
