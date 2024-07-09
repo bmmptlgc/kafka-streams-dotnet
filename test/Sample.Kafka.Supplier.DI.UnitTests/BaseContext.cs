@@ -1,7 +1,6 @@
 ﻿using Confluent.Kafka;
 using Moq;
 using sample_kafka_supplier_di;
-using Sample.DI.UnitTests;
 using Streamiz.Kafka.Net.Kafka;
 
 namespace Sample.Kafka.Supplier.DI.UnitTests
@@ -37,30 +36,36 @@ namespace Sample.Kafka.Supplier.DI.UnitTests
                 .Returns(adminClientMock.Object);
         
             var consumerMock = new Mock<IConsumer<byte[], byte[]>>();
-            
+
+            IConsumerRebalanceListener listener = null;
+
+            var resultQueue = new Queue<ConsumeResult<byte[], byte[]>?>(new[] { ConsumeResult }!);
+
             consumerMock
-                .SetupSequence(consumer => consumer.Consume(It.IsAny<TimeSpan>()))
-                .Returns(ConsumeResult)
-                .Returns((ConsumeResult<byte[], byte[]>)null);
+                .Setup(consumer => consumer.Consume(It.IsAny<TimeSpan>()))
+                .Callback<TimeSpan>(_ => listener.PartitionsAssigned(
+                    consumerMock.Object, new List<TopicPartition>
+                    {
+                        new("orders", new Partition(0))
+                    }))
+                .Returns(resultQueue.Dequeue)
+                .Callback<TimeSpan>(_ => resultQueue.Enqueue(null));
             
             kafkaSupplierMock
                 .Setup(ks => ks.GetConsumer(It.IsAny<ConsumerConfig>(), It.IsAny<IConsumerRebalanceListener>()))
+                .Callback<ConsumerConfig, IConsumerRebalanceListener>((_, r) => listener = r)
                 .Returns(consumerMock.Object);
+
+            var producerMock = new Mock<IProducer<byte[], byte[]>>();
+            producerMock.SetupGet(producer => producer.Name).Returns("kafka-topic-splitter-producer");
             
-            // var configuration = new StreamConfig<StringSerDes, SchemaAvroSerDes<GenericRecord>>
-            // {
-            //     ApplicationId = "kafka-topic-splitter",
-            //     BootstrapServers = "kafka-mock",
-            //     SchemaRegistryUrl = "registry-mock",
-            //     FollowMetadata = true
-            // };
+            kafkaSupplierMock
+                .Setup(ks => ks.GetProducer(It.IsAny<ProducerConfig>()))
+                .Returns(producerMock.Object);
 
             var factory = new CustomWebApplicationFactory<Program>(
                 kafkaSupplierMock.Object);
             
-            // var factory = new CustomWebApplicationFactory<Program>(
-            //     new DefaultKafkaClientSupplierMock(configuration, consumerMock));
-
             factory.CreateClient();
         }
 

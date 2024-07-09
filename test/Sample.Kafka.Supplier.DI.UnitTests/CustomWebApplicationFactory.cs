@@ -1,17 +1,13 @@
 ﻿using Avro.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Moq;
-using sample_kafka_supplier_di.Options;
 using Streamiz.Kafka.Net;
 using Streamiz.Kafka.Net.Kafka;
 using Streamiz.Kafka.Net.SchemaRegistry.SerDes.Avro;
 using Streamiz.Kafka.Net.SerDes;
 
-namespace Sample.DI.UnitTests;
+namespace Sample.Kafka.Supplier.DI.UnitTests;
 
 internal class CustomWebApplicationFactory<TProgram>
     : WebApplicationFactory<TProgram> where TProgram : class
@@ -26,18 +22,18 @@ internal class CustomWebApplicationFactory<TProgram>
     {
         builder.ConfigureServices(services =>
         {
-            // var streamConfigDescriptor = services
-            //     .SingleOrDefault(d => d.ServiceType == typeof(StreamConfig));
-            //
-            // services.Remove(streamConfigDescriptor);
-            //
-            // services.AddSingleton<StreamConfig>(container => new StreamConfig<StringSerDes, SchemaAvroSerDes<GenericRecord>>
-            // {
-            //     ApplicationId = "kafka-topic-splitter",
-            //     BootstrapServers = "dummy-kafka",
-            //     SchemaRegistryUrl = "dummy-registry",
-            //     FollowMetadata = true
-            // });
+            var streamConfigDescriptor = services
+                .SingleOrDefault(d => d.ServiceType == typeof(StreamConfig<StringSerDes, SchemaAvroSerDes<GenericRecord>>));
+            
+            services.Remove(streamConfigDescriptor);
+            
+            services.AddSingleton(_ => new StreamConfig<StringSerDes, SchemaAvroSerDes<GenericRecord>>
+            {
+                ApplicationId = "kafka-topic-splitter",
+                BootstrapServers = "mock://test",
+                SchemaRegistryUrl = "mock://test",
+                FollowMetadata = true
+            });
             //
             // var topicSplitterOptionsDescriptor = services
             //     .SingleOrDefault(d => d.ServiceType == typeof(IOptions<TopicSplitterOptions>));
@@ -63,7 +59,7 @@ internal class CustomWebApplicationFactory<TProgram>
 
             services.Remove(kafkaSupplierDescriptor);
             
-            services.AddSingleton<IKafkaSupplier>(container => _kafkaSupplier);
+            services.AddSingleton<IKafkaSupplier>(_ => _kafkaSupplier);
         });
 
         builder.UseEnvironment("Development");
