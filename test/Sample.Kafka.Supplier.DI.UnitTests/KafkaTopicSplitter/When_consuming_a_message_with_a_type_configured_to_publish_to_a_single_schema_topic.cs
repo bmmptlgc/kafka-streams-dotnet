@@ -49,10 +49,12 @@ namespace Sample.Kafka.Supplier.DI.UnitTests.KafkaTopicSplitter
         }
 
         [Test(Name = "Then it should publish to the expected topic name")]
-        // [Test]
         public void ThenTtShouldReturnTheExpectedContext()
         { 
-
+            ProducerMock.Verify(producer => producer.Produce(
+                It.IsAny<TopicPartition>(),
+                It.IsAny<Message<byte[],byte[]>>(),
+                It.IsAny<Action<DeliveryReport<byte[],byte[]>>>()));
         }
     }
 }

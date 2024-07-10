@@ -8,7 +8,11 @@ namespace Sample.Kafka.Supplier.DI.UnitTests
     internal class BaseContext : ArrangeActAssert
     {
         protected ConsumeResult<byte[], byte[]> ConsumeResult = new();
+        protected int ExpectedNumberProducedMessages = 1;
+        protected Mock<IProducer<byte[], byte[]>> ProducerMock = new();
 
+        private int _producedMessagesCounter = 0;
+        
         protected override void Arrange()
         {
             base.Arrange();
@@ -56,12 +60,11 @@ namespace Sample.Kafka.Supplier.DI.UnitTests
                 .Callback<ConsumerConfig, IConsumerRebalanceListener>((_, r) => listener = r)
                 .Returns(consumerMock.Object);
 
-            var producerMock = new Mock<IProducer<byte[], byte[]>>();
-            producerMock.SetupGet(producer => producer.Name).Returns("kafka-topic-splitter-producer");
+            ProducerMock.SetupGet(producer => producer.Name).Returns("kafka-topic-splitter-producer");
             
             kafkaSupplierMock
                 .Setup(ks => ks.GetProducer(It.IsAny<ProducerConfig>()))
-                .Returns(producerMock.Object);
+                .Returns(ProducerMock.Object);
 
             var factory = new CustomWebApplicationFactory<Program>(
                 kafkaSupplierMock.Object);
@@ -72,6 +75,30 @@ namespace Sample.Kafka.Supplier.DI.UnitTests
         protected override async Task Act()
         {
             await base.Act();
+
+            await WaitOnProducedMessages();
+        }
+
+        protected override void CleanUpTest()
+        {
+            base.CleanUpTest();
+            
+            ProducerMock.Reset();
+            _producedMessagesCounter = 0;
+        }
+
+        private async Task WaitOnProducedMessages()
+        {
+            await Task.Run(() =>
+            {
+                var startTime = DateTime.Now;
+
+                do
+                {
+                    if (startTime + TimeSpan.FromSeconds(10) < DateTime.Now)
+                        break;
+                } while (_producedMessagesCounter < ExpectedNumberProducedMessages);
+            });
         }
     }
 }
