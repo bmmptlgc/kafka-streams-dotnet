@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using Streamiz.Kafka.Net.Metrics;
 using Streamiz.Kafka.Net.Metrics.Prometheus;
 using Streamiz.Kafka.Net.Stream;
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using Streamiz.Kafka.Net.Metrics.Prometheus;
 using Streamiz.Kafka.Net.Table;
 
 namespace sample_stream
@@ -22,10 +20,6 @@ namespace sample_stream
                 ApplicationId = $"test-app",
                 BootstrapServers = "localhost:9092",
                 AutoOffsetReset = AutoOffsetReset.Earliest,
-                PartitionAssignmentStrategy = PartitionAssignmentStrategy.RoundRobin,
-                Partitioner = Partitioner.ConsistentRandom,
-                Debug = "broker,topic,msg",
-                ClientId = "ttoot",
                 Logger = LoggerFactory.Create((b) =>
                 {
                     b.AddConsole();
@@ -50,7 +44,7 @@ namespace sample_stream
             TimeSpan windowSize = TimeSpan.FromHours(1);
             
             var builder = new StreamBuilder();
-          /*  builder.Stream<string, string>("input")
+            /*builder.Stream<string, string>("input")
                 .GroupByKey()
                 .WindowedBy(TumblingWindowOptions.Of(windowSize))
                 .Count(RocksDbWindows.As<string, long>("count-store")
@@ -63,7 +57,10 @@ namespace sample_stream
                     new StringSerDes(),
                     new StringSerDes());*/
 
-          builder.GlobalTable<string, string>("global");
+            builder.Stream<string, string>("input")
+                .To(
+                    "output");//, (s, s1, arg3, arg4) => new Partition(0));
+
             
             return builder.Build();
         }
