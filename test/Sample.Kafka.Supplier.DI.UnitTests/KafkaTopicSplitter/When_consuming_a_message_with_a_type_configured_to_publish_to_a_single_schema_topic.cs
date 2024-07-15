@@ -31,6 +31,13 @@ namespace Sample.Kafka.Supplier.DI.UnitTests.KafkaTopicSplitter
             order.Add("ProgramId", Guid.NewGuid());
             order.Add("PatientProfileId", Guid.NewGuid().ToString());
             order.Add("CreatedBy", null);
+
+            var schemaRegistryClientMock = new Mock<ISchemaRegistryClient>();
+
+            schemaRegistryClientMock
+                .Setup(registry => registry
+                    .RegisterSchemaAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .ReturnsAsync(1);
             
             ConsumeResult = new ConsumeResult<byte[], byte[]>
             {
@@ -42,9 +49,10 @@ namespace Sample.Kafka.Supplier.DI.UnitTests.KafkaTopicSplitter
                         { "MessageType", Encoding.ASCII.GetBytes("Tests.OrderCreated") }
                     },
                     Key = Encoding.ASCII.GetBytes("83401039-76dc-4432-8503-a38a8998c87f"),
-                    Value = new AvroSerializer<GenericRecord>(Mock.Of<ISchemaRegistryClient>()).SerializeAsync(order, new SerializationContext()).Result
+                    Value = new AvroSerializer<GenericRecord>(schemaRegistryClientMock.Object).SerializeAsync(order, new SerializationContext()).Result
                 }
             };
+            
             base.Arrange();
         }
 
@@ -54,7 +62,7 @@ namespace Sample.Kafka.Supplier.DI.UnitTests.KafkaTopicSplitter
             ProducerMock.Verify(producer => producer.Produce(
                 It.IsAny<TopicPartition>(),
                 It.IsAny<Message<byte[],byte[]>>(),
-                It.IsAny<Action<DeliveryReport<byte[],byte[]>>>()));
+                It.IsAny<Action<DeliveryReport<byte[],byte[]>>>()), Times.Exactly(1));
         }
     }
 }

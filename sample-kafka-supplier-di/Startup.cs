@@ -21,10 +21,6 @@ namespace sample_kafka_supplier_di
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // services.AddSingleton(c =>
-            //     new CachedSchemaRegistryClient(
-            //         Configuration.GetSection(KafkaBusOptions.Section).Get<KafkaBusOptions>()?.SchemaRegistry));
-            
             services.AddOptions<TopicSplitterOptions>()
                 .Bind(Configuration)
                 .ValidateDataAnnotations()

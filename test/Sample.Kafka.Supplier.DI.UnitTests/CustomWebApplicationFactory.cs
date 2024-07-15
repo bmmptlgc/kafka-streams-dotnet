@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using sample_kafka_supplier_di;
 using Streamiz.Kafka.Net;
 using Streamiz.Kafka.Net.Kafka;
 using Streamiz.Kafka.Net.SchemaRegistry.SerDes.Avro;
@@ -13,9 +15,12 @@ internal class CustomWebApplicationFactory<TProgram>
     : WebApplicationFactory<TProgram> where TProgram : class
 {
     private readonly IKafkaSupplier _kafkaSupplier;
-    public CustomWebApplicationFactory(IKafkaSupplier kafkaSupplier)
+    private readonly StreamConfig<StringSerDes, SchemaAvroSerDes<GenericRecord>> _streamConfig;
+    
+    public CustomWebApplicationFactory(IKafkaSupplier kafkaSupplier, StreamConfig<StringSerDes, SchemaAvroSerDes<GenericRecord>> streamConfig)
     {
         _kafkaSupplier = kafkaSupplier;
+        _streamConfig = streamConfig;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -27,33 +32,8 @@ internal class CustomWebApplicationFactory<TProgram>
             
             services.Remove(streamConfigDescriptor);
             
-            services.AddSingleton(_ => new StreamConfig<StringSerDes, SchemaAvroSerDes<GenericRecord>>
-            {
-                ApplicationId = "kafka-topic-splitter",
-                BootstrapServers = "mock://test",
-                SchemaRegistryUrl = "mock://test",
-                FollowMetadata = true
-            });
-            //
-            // var topicSplitterOptionsDescriptor = services
-            //     .SingleOrDefault(d => d.ServiceType == typeof(IOptions<TopicSplitterOptions>));
-            //
-            // services.Remove(topicSplitterOptionsDescriptor);
-            //
-            // var appSettingsStub = new Dictionary<string, string> {
-            //     {"Topics:SomeService:RetryCount", "3"},
-            //     {"Services:SomeService:RetrySleepDuration", "2"}
-            // };
-            //
-            // var configuration = new ConfigurationBuilder()
-            //     .AddInMemoryCollection(appSettingsStub)
-            //     .Build();
-            //
-            // services.AddOptions<TopicSplitterOptions>()
-            //     .Bind(Configuration)
-            //     .ValidateDataAnnotations()
-            //     .ValidateOnStart()
-                
+            services.AddSingleton(_ => _streamConfig);
+            
             var kafkaSupplierDescriptor = services
                 .SingleOrDefault(d => d.ServiceType == typeof(IKafkaSupplier));
 
