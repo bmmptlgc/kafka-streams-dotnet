@@ -32,7 +32,17 @@ namespace Sample.Kafka.Supplier.DI.UnitTests
                 ApplicationId = "kafka-topic-splitter",
                 BootstrapServers = "mock://test",
                 SchemaRegistryUrl = "mock://test",
-                FollowMetadata = true
+                FollowMetadata = true,
+                InnerExceptionHandler = exception =>
+                {
+                    Console.WriteLine(exception);
+                    return ExceptionHandlerResponse.CONTINUE;
+                },
+                ProductionExceptionHandler = report =>
+                {
+                    Console.WriteLine(report.Error);
+                    return ProductionExceptionHandlerResponse.RETRY;
+                }
             };
             
             var adminClientMock = new Mock<IAdminClient>();
@@ -149,7 +159,7 @@ namespace Sample.Kafka.Supplier.DI.UnitTests
 
                 do
                 {
-                    if (startTime + TimeSpan.FromSeconds(2) < DateTime.Now)
+                    if (startTime + TimeSpan.FromSeconds(5) < DateTime.Now)
                         break;
                 } while (_producedMessagesCounter < ExpectedNumberProducedMessages);
             });

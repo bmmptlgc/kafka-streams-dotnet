@@ -64,7 +64,7 @@ namespace sample_kafka_supplier_di
                     {
                         var messageTypeHeader = StreamizMetadata.GetCurrentHeadersMetadata()
                             .FirstOrDefault(h => h.Key == "MessageType")?.GetValueBytes();
-                    
+                        // throw new Exception("Filter");
                         return messageTypeHeader != null &&
                                topicConfig.MessageTypes.Contains(Encoding.UTF8.GetString(messageTypeHeader));
                     })
@@ -72,7 +72,7 @@ namespace sample_kafka_supplier_di
                     {
                         var messageType = context.Headers
                             .FirstOrDefault(h => h.Key == "MessageType")!.GetValueBytes();
-
+                        // throw new Exception("To");
                         return $"mt_{Encoding.UTF8.GetString(messageType).Replace(".", "-").ToLower()}";
                     }, new StringSerDes(), new SchemaAvroSerDes<GenericRecord>());
             }

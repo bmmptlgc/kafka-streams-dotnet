@@ -52,6 +52,11 @@ namespace Sample.Kafka.Supplier.DI.UnitTests.KafkaTopicSplitter
                     Value = new AvroSerializer<GenericRecord>(schemaRegistryClientMock.Object).SerializeAsync(order, new SerializationContext()).Result
                 }
             };
+
+            ProducerMock.Setup(producer => producer.Produce(
+                It.IsAny<TopicPartition>(),
+                It.IsAny<Message<byte[], byte[]>>(),
+                It.IsAny<Action<DeliveryReport<byte[], byte[]>>>())).Throws(new Exception("Producer exception"));
             
             base.Arrange();
         }
