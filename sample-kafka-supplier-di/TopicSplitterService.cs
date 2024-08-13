@@ -36,6 +36,8 @@ namespace sample_kafka_supplier_di
             {
                 var topology = BuildTopology(_topicSplitterOptions.Topics);
 
+                _streamConfig.InnerExceptionHandler = _ => ExceptionHandlerResponse.FAIL;
+                
                 var stream = new KafkaStream(topology, _streamConfig, _kafkaSupplier);
             
                 await stream.StartAsync(stoppingToken);
@@ -64,7 +66,14 @@ namespace sample_kafka_supplier_di
                     {
                         var messageTypeHeader = StreamizMetadata.GetCurrentHeadersMetadata()
                             .FirstOrDefault(h => h.Key == "MessageType")?.GetValueBytes();
-                        // throw new Exception("Filter");
+                        
+                        Console.WriteLine(Encoding.UTF8.GetString(messageTypeHeader));
+                        
+                        if (Encoding.UTF8.GetString(messageTypeHeader).Equals(Encoding.UTF8.GetString(messageTypeHeader)))
+                        {
+                            throw new Exception("Filter");
+                        }
+                        
                         return messageTypeHeader != null &&
                                topicConfig.MessageTypes.Contains(Encoding.UTF8.GetString(messageTypeHeader));
                     })
