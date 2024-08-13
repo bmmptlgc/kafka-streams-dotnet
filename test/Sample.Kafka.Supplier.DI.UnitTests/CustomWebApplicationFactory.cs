@@ -22,7 +22,7 @@ internal class CustomWebApplicationFactory<TProgram>
         _kafkaSupplier = kafkaSupplier;
         _streamConfig = streamConfig;
     }
-
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
